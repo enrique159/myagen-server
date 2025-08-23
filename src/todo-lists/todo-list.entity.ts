@@ -1,0 +1,34 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { Element } from '@/elements/element.entity';
+import { Task } from '@/tasks/task.entity';
+
+@Entity('todo_lists')
+export class TodoList {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => Element, (element) => element.lists, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'element_id' })
+  element: Element;
+
+  @Column()
+  title: string;
+
+  @OneToMany(() => Task, (task) => task.list)
+  tasks: Task[];
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+}

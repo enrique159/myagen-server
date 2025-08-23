@@ -1,12 +1,27 @@
 import { Base } from '@/shared/domain/base';
-import { Entity, Column, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Unique, OneToMany } from 'typeorm';
 import { UserStatus } from './domain/user';
+import { Project } from '@/projects/project.entity';
+import { Tag } from '@/tags/tag.entity';
+import { Element } from '@/elements/element.entity';
 
 @Entity('users')
 @Unique(['email'])
 export class User implements Base {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  // Projects
+  @OneToMany(() => Project, (project) => project.user)
+  projects: Project[];
+
+  // Tags
+  @OneToMany(() => Tag, (tag) => tag.user)
+  tags: Tag[];
+
+  // Elements
+  @OneToMany(() => Element, (element) => element.user)
+  elements: Element[];
 
   @Column()
   email: string;

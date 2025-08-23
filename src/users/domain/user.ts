@@ -6,12 +6,7 @@ export interface User {
   lastName: string;
   phoneNumber: string | null;
   profileImageUrl: string | null;
-  emailVerifiedAt: Date;
-  twoFactorEnabled: boolean;
-  twoFactorSecret: string | null;
   status: UserStatus;
-  lastLoginAt: Date | null;
-  onboardingCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -12,19 +12,17 @@ import { useContainer } from 'class-validator';
 import { ValidationPipe } from '@nestjs/common';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
+  app.use(cookieParser());
   app.enableCors({
-    origin: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders:
-      'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+    origin: configService.get('origins'),
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
   });
   app.useGlobalPipes(
     new ValidationPipe({
