@@ -26,7 +26,7 @@ export class ElementsService {
    * @param { CreateElementDto } element
    * @returns { Promise<Element> }
    */
-  async create(element: CreateElementDto): Promise<Element> {
+  async create(element: Partial<Element & { userId: string, projectId?: string }>): Promise<Element> {
     const user = await this.userRepository.findOne({
       where: { id: element.userId },
     });
@@ -36,7 +36,6 @@ export class ElementsService {
     }
 
     const newElement = this.elementRepository.create({
-      title: element.title,
       assignedDate: element.assignedDate,
       user,
     });
@@ -57,11 +56,18 @@ export class ElementsService {
   }
 
   /**
-   * @description Find all elements for a user
-   * @param { string } userId
+   * @description Find elements with filters
+   * @param { string } userId - Required user ID
+   * @param { Date } [assignedDate] - Optional date filter (defaults to current date)
+   * @param { string } [projectId] - Optional project ID filter
    * @returns { Promise<Element[]> }
    */
-  async findAllByUser(userId: string): Promise<Element[]> {
+  async findElements(
+    userId: string,
+    assignedDate?: Date,
+    projectId?: string,
+  ): Promise<Element[]> {
+    // Validate user exists
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -70,30 +76,67 @@ export class ElementsService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
+    // Use current date if not provided
+    const filterDate = assignedDate || new Date();
+    
+    // Format date to match database format (YYYY-MM-DD)
+    const formattedDate = filterDate.toISOString().split('T')[0];
+
+    // Build where conditions
+    const whereConditions: any = {
+      user: { id: userId },
+      assignedDate: formattedDate,
+    };
+
+    // Add project filter if provided
+    if (projectId) {
+      // Validate project exists
+      const project = await this.projectRepository.findOne({
+        where: { id: projectId },
+      });
+
+      if (!project) {
+        throw new NotFoundException(`Project with ID ${projectId} not found`);
+      }
+
+      whereConditions.project = { id: projectId };
+    }
+
     return this.elementRepository.find({
-      where: { user: { id: userId } },
+      where: whereConditions,
       relations: ['user', 'project', 'tags', 'notes', 'lists'],
     });
   }
 
   /**
-   * @description Find all elements for a project
+   * @description Find all elements for a user (legacy method)
+   * @param { string } userId
+   * @returns { Promise<Element[]> }
+   * @deprecated Use findElements instead
+   */
+  async findAllByUser(userId: string): Promise<Element[]> {
+    return this.findElements(userId);
+  }
+
+  /**
+   * @description Find all elements for a project (legacy method)
    * @param { string } projectId
    * @returns { Promise<Element[]> }
+   * @deprecated Use findElements instead
    */
   async findAllByProject(projectId: string): Promise<Element[]> {
+    // We need a userId for this method, but since it's a legacy method and we don't have it,
+    // we'll get the project first and then find elements by project
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
+      relations: ['user'],
     });
 
     if (!project) {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
-    return this.elementRepository.find({
-      where: { project: { id: projectId } },
-      relations: ['user', 'project', 'tags', 'notes', 'lists'],
-    });
+    return this.findElements(project.user.id, undefined, projectId);
   }
 
   /**
@@ -122,7 +165,7 @@ export class ElementsService {
    */
   async update(id: string, element: UpdateElementDto): Promise<Element | null> {
     const existingElement = await this.findOne(id);
-    
+
     if (!existingElement) {
       throw new NotFoundException(`Element with ID ${id} not found`);
     }
@@ -154,11 +197,11 @@ export class ElementsService {
    */
   async delete(id: string): Promise<void> {
     const element = await this.findOne(id);
-    
+
     if (!element) {
       throw new NotFoundException(`Element with ID ${id} not found`);
     }
-    
+
     await this.elementRepository.delete(id);
   }
 
@@ -170,13 +213,30 @@ export class ElementsService {
    */
   async addTags(elementId: string, tagIds: string[]): Promise<Element> {
     const element = await this.findOne(elementId);
-    
+
     if (!element) {
       throw new NotFoundException(`Element with ID ${elementId} not found`);
     }
 
-    const tags = await Promise.all(
-      tagIds.map(async (tagId) => {
+    // Initialize tags array if it doesn't exist
+    if (!element.tags) {
+      element.tags = [];
+    }
+
+    // Get existing tag IDs to avoid duplicates
+    const existingTagIds = element.tags.map(tag => tag.id);
+
+    // Filter out tag IDs that are already associated with the element
+    const newTagIds = tagIds.filter(tagId => !existingTagIds.includes(tagId));
+
+    // If there are no new tags to add, return the element as is
+    if (newTagIds.length === 0) {
+      return element;
+    }
+
+    // Fetch only the new tags
+    const newTags = await Promise.all(
+      newTagIds.map(async (tagId) => {
         const tag = await this.tagRepository.findOne({ where: { id: tagId } });
         if (!tag) {
           throw new NotFoundException(`Tag with ID ${tagId} not found`);
@@ -186,11 +246,7 @@ export class ElementsService {
     );
 
     // Add new tags to the element's existing tags
-    if (!element.tags) {
-      element.tags = [];
-    }
-    
-    element.tags = [...element.tags, ...tags];
+    element.tags = [...element.tags, ...newTags];
     return this.elementRepository.save(element);
   }
 
@@ -202,7 +258,7 @@ export class ElementsService {
    */
   async removeTags(elementId: string, tagIds: string[]): Promise<Element> {
     const element = await this.findOne(elementId);
-    
+
     if (!element) {
       throw new NotFoundException(`Element with ID ${elementId} not found`);
     }

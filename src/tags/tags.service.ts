@@ -23,7 +23,7 @@ export class TagsService {
    * @param { CreateTagDto } tag
    * @returns { Promise<Tag> }
    */
-  async create(tag: CreateTagDto): Promise<Tag> {
+  async create(tag: CreateTagDto & { userId: string }): Promise<Tag> {
     const user = await this.userRepository.findOne({
       where: { id: tag.userId },
     });

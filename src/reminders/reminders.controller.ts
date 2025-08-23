@@ -8,11 +8,13 @@ import {
   Body,
   ValidationPipe,
   Query,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { RemindersService } from './reminders.service';
-import { Reminder } from './reminder.entity';
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
+import { UserToken } from '@/users/domain/user';
 
 @Controller('reminders')
 export class RemindersController {
@@ -31,12 +33,16 @@ export class RemindersController {
   }
 
   // Find all reminders for a user by date range
-  @Get('user/:userId/date-range')
+  @Get('user/date-range')
   async findAllByDateRange(
-    @Param('userId') userId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
+    @Req() req: Request & { user: UserToken }
   ) {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('User ID is required');
+    }
     return this.remindersService.findAllByDateRange(
       userId,
       new Date(startDate),

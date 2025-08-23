@@ -17,7 +17,7 @@ export class ProjectsService {
    * @param { CreateProjectDto } project
    * @returns { Promise<Project> }
    */
-  async create(project: CreateProjectDto): Promise<Project> {
+  async create(project: CreateProjectDto & { userId: string }): Promise<Project> {
     return this.projectRepository.save(project);
   }
 

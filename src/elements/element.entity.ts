@@ -15,6 +15,7 @@ import { Project } from '@/projects/project.entity';
 import { Tag } from '@/tags/tag.entity';
 import { Note } from '@/notes/note.entity';
 import { TodoList } from '@/todo-lists/todo-list.entity';
+import { BaseStatus } from '@/shared/domain/status';
 
 @Entity('elements')
 export class Element {
@@ -32,7 +33,7 @@ export class Element {
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
 
   @Column({ name: 'assigned_date', type: 'date' })
@@ -51,6 +52,9 @@ export class Element {
     inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' },
   })
   tags: Tag[];
+
+  @Column({ type: 'enum', enum: BaseStatus, default: BaseStatus.ACTIVE })
+  status: BaseStatus;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
