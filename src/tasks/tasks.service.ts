@@ -31,7 +31,6 @@ export class TasksService {
 
     const newTask = this.taskRepository.create({
       description: task.description,
-      completed: task.completed || false,
       list,
     });
 

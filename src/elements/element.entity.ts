@@ -13,7 +13,6 @@ import {
 import { User } from '@/users/user.entity';
 import { Project } from '@/projects/project.entity';
 import { Tag } from '@/tags/tag.entity';
-import { Note } from '@/notes/note.entity';
 import { TodoList } from '@/todo-lists/todo-list.entity';
 import { BaseStatus } from '@/shared/domain/status';
 
@@ -38,9 +37,6 @@ export class Element {
 
   @Column({ name: 'assigned_date', type: 'date' })
   assignedDate: Date;
-
-  @OneToMany(() => Note, (note) => note.element)
-  notes: Note[];
 
   @OneToMany(() => TodoList, (list) => list.element)
   lists: TodoList[];

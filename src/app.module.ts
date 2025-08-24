@@ -11,7 +11,6 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ElementsModule } from './elements/elements.module';
-import { NotesModule } from './notes/notes.module';
 import { TodoListsModule } from './todo-lists/todo-lists.module';
 import { TasksModule } from './tasks/tasks.module';
 import { RemindersModule } from './reminders/reminders.module';
@@ -51,7 +50,6 @@ import { TagsModule } from './tags/tags.module';
     AuthModule,
     ProjectsModule,
     ElementsModule,
-    NotesModule,
     TodoListsModule,
     TasksModule,
     RemindersModule,

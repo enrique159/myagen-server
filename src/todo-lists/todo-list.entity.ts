@@ -11,6 +11,11 @@ import {
 import { Element } from '@/elements/element.entity';
 import { Task } from '@/tasks/task.entity';
 
+export enum TodoListType {
+  NOTE = "note",
+  LIST = "list"
+}
+
 @Entity('todo_lists')
 export class TodoList {
   @PrimaryGeneratedColumn('uuid')
@@ -20,8 +25,14 @@ export class TodoList {
   @JoinColumn({ name: 'element_id' })
   element: Element;
 
-  @Column()
-  title: string;
+  @Column({ type: 'int', default: 0 })
+  order: number;
+
+  @Column({ type: 'enum', enum: TodoListType, default: TodoListType.LIST })
+  type: TodoListType;
+
+  @Column({ type: 'longtext', nullable: true })
+  content: string;
 
   @OneToMany(() => Task, (task) => task.list)
   tasks: Task[];

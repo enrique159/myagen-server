@@ -8,8 +8,4 @@ export class CreateTaskDto {
   @IsNotEmpty()
   @IsString()
   description: string;
-
-  @IsOptional()
-  @IsBoolean()
-  completed?: boolean;
 }

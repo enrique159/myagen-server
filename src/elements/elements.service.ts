@@ -104,7 +104,7 @@ export class ElementsService {
 
     return this.elementRepository.find({
       where: whereConditions,
-      relations: ['user', 'project', 'tags', 'notes', 'lists'],
+      relations: ['user', 'project', 'tags', 'lists', 'lists.tasks', 'lists.tasks.reminder'],
     });
   }
 
@@ -147,7 +147,7 @@ export class ElementsService {
   async findOne(id: string): Promise<Element | null> {
     const element = await this.elementRepository.findOne({
       where: { id },
-      relations: ['user', 'project', 'tags', 'notes', 'lists'],
+      relations: ['user', 'project', 'tags', 'lists'],
     });
 
     if (!element) {

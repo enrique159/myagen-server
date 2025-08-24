@@ -6,10 +6,9 @@ import { Element } from './element.entity';
 import { User } from '@/users/user.entity';
 import { Project } from '@/projects/project.entity';
 import { Tag } from '@/tags/tag.entity';
-import { NotesModule } from '@/notes/notes.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Element, User, Project, Tag]), NotesModule],
+  imports: [TypeOrmModule.forFeature([Element, User, Project, Tag])],
   providers: [ElementsService],
   controllers: [ElementsController],
   exports: [ElementsService],

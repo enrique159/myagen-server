@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { TodoListType } from '../todo-list.entity';
 
 export class CreateTodoListDto {
   @IsNotEmpty()
@@ -6,6 +7,10 @@ export class CreateTodoListDto {
   elementId: string;
 
   @IsNotEmpty()
-  @IsString()
-  title: string;
+  @IsEnum(TodoListType)
+  type: TodoListType;
+
+  @IsOptional()
+  @IsNumber()
+  order?: number;
 }

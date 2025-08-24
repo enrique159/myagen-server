@@ -9,7 +9,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { TodoListsService } from './todo-lists.service';
-import { TodoList } from './todo-list.entity';
 import { CreateTodoListDto } from './dto/create-todo-list.dto';
 import { UpdateTodoListDto } from './dto/update-todo-list.dto';
 

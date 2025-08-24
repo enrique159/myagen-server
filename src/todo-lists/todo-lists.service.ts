@@ -30,8 +30,9 @@ export class TodoListsService {
     }
 
     const newTodoList = this.todoListRepository.create({
-      title: todoList.title,
       element,
+      order: todoList.order,
+      type: todoList.type,
     });
 
     return this.todoListRepository.save(newTodoList);
