@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { Element } from './element.entity';
 import { CreateElementDto } from './dto/create-element.dto';
 import { UpdateElementDto } from './dto/update-element.dto';
@@ -106,6 +106,39 @@ export class ElementsService {
       where: whereConditions,
       relations: ['user', 'project', 'tags', 'lists', 'lists.tasks', 'lists.tasks.reminder'],
     });
+  }
+
+  /**
+   * @description Find elements that match the search query in title, tags, or list content
+   * @param { string } userId - Required user ID
+   * @param { string } query - Search query
+   * @returns { Promise<Element[]> }
+   */
+  async searchElements(userId: string, query: string): Promise<Element[]> {
+    // Validate user exists
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Create query builder to search across multiple related entities
+    return this.elementRepository
+      .createQueryBuilder('element')
+      .leftJoinAndSelect('element.user', 'user')
+      .leftJoinAndSelect('element.project', 'project')
+      .leftJoinAndSelect('element.tags', 'tags')
+      .leftJoinAndSelect('element.lists', 'lists')
+      .leftJoinAndSelect('lists.tasks', 'tasks')
+      .leftJoinAndSelect('tasks.reminder', 'reminder')
+      .where('element.user_id = :userId', { userId })
+      .andWhere(
+        '(element.title LIKE :query OR tags.name LIKE :query OR lists.content LIKE :query)',
+        { query: `%${query}%` }
+      )
+      .getMany();
   }
 
   /**

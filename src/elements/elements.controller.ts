@@ -60,6 +60,20 @@ export class ElementsController {
     return this.elementsService.findElements(userId, assignedDate, projectId);
   }
 
+  // Find any elements that match the search query
+  @Get('search')
+  @UseGuards(AuthGuard)
+  async searchElements(
+    @Req() req: Request & { user: UserToken },
+    @Query('query') query: string,
+  ) {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('User ID is required');
+    }
+    return this.elementsService.searchElements(userId, query);
+  }
+
   // Find an element by id
   @Get(':id')
   @UseGuards(AuthGuard)
