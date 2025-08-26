@@ -117,7 +117,11 @@ export class AuthController {
   @Post('signout')
   @HttpCode(HttpStatus.OK)
   async signout(@Res() response: Response) {
-    response.clearCookie('authorization');
+    response.clearCookie('authorization', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
     return response.status(HttpStatus.OK).json({ message: 'Signout success' });
   }
 }
