@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Element } from './element.entity';
-import { CreateElementDto } from './dto/create-element.dto';
 import { UpdateElementDto } from './dto/update-element.dto';
 import { User } from '@/users/user.entity';
 import { Project } from '@/projects/project.entity';
 import { Tag } from '@/tags/tag.entity';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class ElementsService {
@@ -139,6 +139,44 @@ export class ElementsService {
         { query: `%${query}%` }
       )
       .getMany();
+  }
+
+  /**
+   * @description Get all elements from a user, all or by project, by year as an array of months and elements with the assigned day
+   * The idea of this endpoint is to show markers in a calendar of the frontend and the user can see the elements of a specific month
+   * @param { string } userId - Required user ID
+   * @param { string } year - Required year
+   * @param { string | undefined } projectId - Optional project ID
+   * @returns { Promise<Array<Pick<Element, 'id' | 'title' | 'assignedDate'>>> }
+   */
+  async getElementsByUserAndYear(userId: string, year: string, projectId?: string): Promise<Array<Pick<Element, 'id' | 'title' | 'assignedDate'>>> {
+    // search elements by user, project and year
+    const whereConditions: any = {
+      user: { id: userId },
+    };
+
+    // Add project filter if provided
+    if (projectId) {
+      // Validate project exists
+      const project = await this.projectRepository.findOne({
+        where: { id: projectId },
+      });
+
+      if (!project) {
+        throw new NotFoundException(`Project with ID ${projectId} not found`);
+      }
+
+      whereConditions.project = { id: projectId };
+    }
+
+    const elements = await this.elementRepository.find({
+      where: whereConditions,
+    });
+    return elements.map(element => ({
+      id: element.id,
+      title: element.title,
+      assignedDate: element.assignedDate,
+    })).filter(element => dayjs(element.assignedDate).year() === parseInt(year));
   }
 
   /**

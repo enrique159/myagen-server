@@ -13,7 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ElementsService } from './elements.service';
-import { Element } from './element.entity';
 import { CreateElementDto } from './dto/create-element.dto';
 import { UpdateElementDto } from './dto/update-element.dto';
 import { UserToken } from '@/users/domain/user';
@@ -72,6 +71,21 @@ export class ElementsController {
       throw new UnauthorizedException('User ID is required');
     }
     return this.elementsService.searchElements(userId, query);
+  }
+
+  // Get elements by user and year
+  @Get('calendar')
+  @UseGuards(AuthGuard)
+  async getArray(
+    @Req() req: Request & { user: UserToken },
+    @Query('year') year: string,
+    @Query('projectId') projectId?: string,
+  ) {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('User ID is required');
+    }
+    return this.elementsService.getElementsByUserAndYear(userId, year, projectId);
   }
 
   // Find an element by id
