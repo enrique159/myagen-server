@@ -14,7 +14,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import type { Request, Response } from 'express';
@@ -26,7 +25,6 @@ import { User } from './user.entity';
 @Controller('users')
 export class UserController {
   constructor(
-    private readonly configService: ConfigService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
@@ -45,16 +43,15 @@ export class UserController {
       id: user.id,
       email: user.email,
     });
-    res.cookie('authorization', `Bearer ${token}`, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: this.configService.get('cookieMaxAge'),
-    });
 
     const createUserResponseDto = new CreateUserResponseDto(user);
     const userResponse = createUserResponseDto.returnCreateUserResponse();
-    return res.status(HttpStatus.CREATED).json(userResponse);
+    return res.status(HttpStatus.CREATED).json({
+      data: {
+        user: userResponse,
+        token,
+      },
+    });
   }
 
   /* UPDATE USER */

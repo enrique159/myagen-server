@@ -86,14 +86,11 @@ export class AuthController {
         id: user.id,
         email: user.email,
       });
-      res.cookie('authorization', `Bearer ${token}`, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: this.configService.get('cookieMaxAge'),
-      });
       return res.json({
-        data: signInResponse.returnSignInResponse(),
+        data: {
+          user: signInResponse.returnSignInResponse(),
+          token,
+        },
       });
     } catch (error) {
       if (
@@ -117,11 +114,6 @@ export class AuthController {
   @Post('signout')
   @HttpCode(HttpStatus.OK)
   async signout(@Res() response: Response) {
-    response.clearCookie('authorization', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-    });
     return response.status(HttpStatus.OK).json({ message: 'Signout success' });
   }
 }
