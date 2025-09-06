@@ -21,6 +21,7 @@ import { UserToken } from './domain/user';
 import { CreateUserResponseDto } from './dto/create-user-response.dto';
 import { AuthGuard } from '@/auth/auth.guard';
 import { User } from './user.entity';
+import { UpdateUserDto } from './dto/update.user.dto';
 
 @Controller('users')
 export class UserController {
@@ -58,7 +59,7 @@ export class UserController {
   @Put(':id')
   @UseGuards(AuthGuard)
   async update(
-    @Body() payload: User,
+    @Body(new ValidationPipe()) payload: UpdateUserDto,
     @Param('id') id: string,
     @Req() req: Request & { user: UserToken },
   ) {
