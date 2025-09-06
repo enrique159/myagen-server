@@ -56,11 +56,10 @@ export class UserController {
   }
 
   /* UPDATE USER */
-  @Put(':id')
+  @Put()
   @UseGuards(AuthGuard)
   async update(
     @Body(new ValidationPipe()) payload: UpdateUserDto,
-    @Param('id') id: string,
     @Req() req: Request & { user: UserToken },
   ) {
     const userId = req.user.id;
@@ -69,6 +68,6 @@ export class UserController {
       throw new BadRequestException('Usuario no encontrado');
     }
 
-    return this.usersService.update(id, payload);
+    return this.usersService.update(userId, payload);
   }
 }
