@@ -23,6 +23,8 @@ import { AuthGuard } from './auth.guard';
 import { UserStatus, UserToken } from '@/users/domain/user';
 import { UsersService } from '@/users/users.service';
 import { ConfigService } from '@nestjs/config';
+import { ResendService } from '@/shared/plugins/resend.plugin';
+import { verificationCodeTemplate } from '@/shared/plugins/mjml.plugin';
 
 @Controller('auth')
 export class AuthController {
@@ -31,6 +33,7 @@ export class AuthController {
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
     private readonly configService: ConfigService,
+    private readonly resendService: ResendService,
   ) {}
 
   /*
@@ -115,5 +118,55 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async signout(@Res() response: Response) {
     return response.status(HttpStatus.OK).json({ message: 'Signout success' });
+  }
+
+  /*
+   * SEND RECOVERY PASSWORD EMAIL
+   * Envía un correo electrónico con un enlace para restablecer la contraseña
+   */
+  @Post('send-recovery-password-email')
+  @HttpCode(HttpStatus.OK)
+  async sendRecoveryPasswordEmail(@Body() body: { email: string }) {
+    const { email } = body;
+    const user = await this.userService.findByEmail(email);
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      throw new NotFoundException('No se encontró una cuenta asociada a este correo electrónico');
+    }
+
+    const verificationToken = this.jwtService.sign({ id: user.id, }, { expiresIn: '1h', });
+    this.resendService.sendEmail(
+      user.email,
+      'Restablece tu contraseña',
+      verificationCodeTemplate(
+        `${this.configService.get('clientUrl')}/auth/recover-password?token=${verificationToken}`,
+      ),
+    );
+    return { message: 'Correo electrónico enviado correctamente.' };
+  }
+
+  /*
+   * RECOVER PASSWORD TOKEN
+   * Restablece una contraseña nueva
+   */
+  @Post('recover-password')
+  @HttpCode(HttpStatus.OK)
+  async validateRecoveryPasswordToken(@Body() body: { token: string, password: string }) {
+    const { token, password } = body;
+    try {
+      const tokenData = await this.jwtService.verifyAsync(token);
+      const user = await this.userService.findOne(tokenData.id);
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado, vuelva a intentar enviar el correo de recuperación.');
+      }
+      await this.userService.update(user.id, { password });
+      return { message: 'Contraseña restablecida correctamente.' };
+    } catch (error) {
+      if (error?.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('El enlace de recuperación ha expirado. Por favor, solicita un nuevo enlace.');
+      } else if (error?.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('El enlace de recuperación no es válido. Por favor, solicita un nuevo enlace.');
+      }
+      throw error;
+    }
   }
 }

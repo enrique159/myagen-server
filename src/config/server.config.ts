@@ -7,4 +7,9 @@ export default () => ({
   cookieMaxAge: process.env.COOKIE_MAX_AGE || 24 * 60 * 60 * 1000,
   fileHost: process.env.FILE_HOST || `localhost:${process.env.PORT || 3333}`,
   fileProtocol: process.env.FILE_PROTOCOL || 'http',
+  clientUrl: process.env.CLIENT_URL || 'http://localhost:8080',
+  resend: {
+    apiKey: process.env.RESEND_API_KEY || 'key',
+    emailSender: process.env.RESEND_EMAIL_SENDER || 'name@domain.com',
+  },
 });

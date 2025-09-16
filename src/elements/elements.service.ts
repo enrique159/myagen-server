@@ -9,9 +9,11 @@ import { Tag } from '@/tags/tag.entity';
 import dayjs from 'dayjs';
 
 const setAssignedDate = (date: Date) => {
-  const today = dayjs().format('YYYY-MM-DD');
-  const assignedDate = dayjs(date).format('YYYY-MM-DD');
-  return assignedDate + ' 12:00:00';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+  return formattedDate + ' 12:00:00';
 };
 
 @Injectable()
@@ -262,7 +264,7 @@ export class ElementsService {
 
     // Update other fields
     if (element.title) existingElement.title = element.title;
-    if (element.assignedDate) existingElement.assignedDate = element.assignedDate;
+    if (element.assignedDate) existingElement.assignedDate = new Date(setAssignedDate(element.assignedDate));
 
     return this.elementRepository.save(existingElement);
   }

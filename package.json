@@ -27,9 +27,11 @@
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
     "dayjs": "^1.11.13",
+    "mjml": "^4.15.3",
     "multer": "^2.0.2",
     "mysql2": "^3.14.3",
     "reflect-metadata": "^0.2.2",
+    "resend": "^6.1.0",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.26",
     "uuid": "^11.1.0"
