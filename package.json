@@ -1,16 +1,19 @@
 {
   "name": "myagen-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MyAgen API",
-  "author": "Enrique",
-  "private": true,
-  "license": "UNLICENSED",
+  "author": "Enrique Marin Hirales",
+  "private": false,
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main",
     "dev": "nest start --watch",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:run": "npm run typeorm -- migration:run -d src/config/typeorm-cli.config.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/config/typeorm-cli.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -8,6 +8,12 @@ import { Project } from '@/projects/project.entity';
 import { Tag } from '@/tags/tag.entity';
 import dayjs from 'dayjs';
 
+const setAssignedDate = (date: Date) => {
+  const today = dayjs().format('YYYY-MM-DD');
+  const assignedDate = dayjs(date).format('YYYY-MM-DD');
+  return assignedDate + ' 12:00:00';
+};
+
 @Injectable()
 export class ElementsService {
   constructor(
@@ -36,7 +42,7 @@ export class ElementsService {
     }
 
     const newElement = this.elementRepository.create({
-      assignedDate: element.assignedDate,
+      assignedDate: setAssignedDate(element.assignedDate!),
       user,
     });
 

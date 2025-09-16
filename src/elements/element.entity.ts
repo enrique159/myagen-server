@@ -35,7 +35,7 @@ export class Element {
   @Column({ nullable: true })
   title: string;
 
-  @Column({ name: 'assigned_date', type: 'date' })
+  @Column({ name: 'assigned_date', type: 'datetime', default: () => '(CONCAT(CURRENT_DATE(), \' 12:00:00\'))' })
   assignedDate: Date;
 
   @OneToMany(() => TodoList, (list) => list.element)
