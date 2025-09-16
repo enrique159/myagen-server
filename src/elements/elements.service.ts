@@ -91,7 +91,7 @@ export class ElementsService {
     // Build where conditions
     const whereConditions: any = {
       user: { id: userId },
-      assignedDate: formattedDate,
+      assignedDate: `${formattedDate} 12:00:00`,
     };
 
     // Add project filter if provided
