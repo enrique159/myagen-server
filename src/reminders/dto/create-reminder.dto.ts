@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateReminderDto {
   @IsNotEmpty()
@@ -6,6 +6,6 @@ export class CreateReminderDto {
   taskId: string;
 
   @IsNotEmpty()
-  @IsDateString()
+  @IsString()
   reminderDate: string;
 }

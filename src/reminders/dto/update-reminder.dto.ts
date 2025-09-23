@@ -1,7 +1,11 @@
-import { IsDateString, IsOptional } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class UpdateReminderDto {
   @IsOptional()
-  @IsDateString()
+  @IsString()
   reminderDate?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  notified?: boolean;
 }

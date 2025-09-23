@@ -18,8 +18,8 @@ export class Reminder {
   @JoinColumn({ name: 'task_id' })
   task: Task;
 
-  @Column({ type: 'timestamp' })
-  date: Date;
+  @Column({ type: 'varchar', length: 100 })
+  date: string;
 
   @Column({ default: false })
   notified: boolean;

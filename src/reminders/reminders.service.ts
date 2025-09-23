@@ -30,7 +30,7 @@ export class RemindersService {
     }
 
     const newReminder = this.reminderRepository.create({
-      date: new Date(reminder.reminderDate),
+      date: reminder.reminderDate,
       task,
     });
 
@@ -67,13 +67,14 @@ export class RemindersService {
   async findAllByDateRange(userId: string, startDate: Date, endDate: Date): Promise<Reminder[]> {
     return this.reminderRepository
       .createQueryBuilder('reminder')
-      .innerJoin('reminder.task', 'task')
-      .innerJoin('task.list', 'list')
-      .innerJoin('list.element', 'element')
+      .leftJoinAndSelect('reminder.task', 'task')
+      .leftJoinAndSelect('task.list', 'list')
+      .leftJoinAndSelect('list.element', 'element')
       .innerJoin('element.user', 'user')
       .where('user.id = :userId', { userId })
       .andWhere('reminder.date >= :startDate', { startDate })
       .andWhere('reminder.date <= :endDate', { endDate })
+      .andWhere('reminder.notified = :notified', { notified: false })
       .orderBy('reminder.date', 'ASC')
       .getMany();
   }
@@ -104,18 +105,11 @@ export class RemindersService {
    */
   async update(id: string, reminder: UpdateReminderDto): Promise<Reminder | null> {
     const existingReminder = await this.findOne(id);
-    
     if (!existingReminder) {
       throw new NotFoundException(`Reminder with ID ${id} not found`);
     }
 
-    // Convert reminderDate to Date object if provided
-    const updatedFields: Partial<Reminder> = {};
-    if (reminder.reminderDate) {
-      updatedFields.date = new Date(reminder.reminderDate);
-    }
-
-    return this.reminderRepository.save({ ...existingReminder, ...updatedFields });
+    return this.reminderRepository.save({ ...existingReminder, ...reminder });
   }
 
   /**
