@@ -4,12 +4,15 @@ import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { extractFilenameFromUrl } from '@/shared/utils/extractFilenameFromUrl';
+import { FilesService } from '@/files/files.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private filesService: FilesService,
   ) {}
 
   /* GET USERS */
@@ -63,5 +66,49 @@ export class UsersService {
   // Guarda un usuario con los cambios realizados en el objeto user
   async save(user: User): Promise<User> {
     return this.usersRepository.save(user);
+  }
+
+  /**
+   * @description Sube una imagen para la empresa y actualiza el campo image
+   * @param { string } id - ID de la empresa
+   * @param { Express.Multer.File } file - Archivo de imagen
+   * @param { Request } req - Objeto de solicitud
+   * @returns { Promise<User> }
+   */
+  async uploadImage(
+    id: string,
+    file: Express.Multer.File,
+    req: any,
+  ): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) {
+      throw new Error('UserNotFound');
+    }
+
+    // Verificar que el archivo tenga un nombre
+    if (!file || !file.filename) {
+      console.error('Error: Archivo no válido o sin nombre', file);
+      throw new Error('ArchivoInvalido');
+    }
+
+    // Eliminar la imagen anterior si existe
+    if (user.profileImageUrl) {
+      const oldFilename = extractFilenameFromUrl(user.profileImageUrl);
+      if (oldFilename) {
+        try {
+          this.filesService.deleteFile(oldFilename);
+        } catch (error) {
+          // Si hay error al eliminar, lanzamos el error
+          throw new Error(`Error al eliminar imagen anterior: ${error}`);
+        }
+      }
+    }
+
+    // Generar URL del archivo
+    const imageUrl = this.filesService.getFileUrl(file.filename, req);
+
+    // Actualizar el producto con la nueva imagen
+    return this.update(user.id, { ...user, profileImageUrl: imageUrl });
   }
 }

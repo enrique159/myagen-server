@@ -5,9 +5,10 @@ import { AuthController } from './auth.controller';
 import { UsersService } from '@/users/users.service';
 import { UsersModule } from '@/users/users.module';
 import { ResendService } from '@/shared/plugins/resend.plugin';
+import { FilesModule } from '@/files/files.module';
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, FilesModule],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard, UsersService, ResendService],
   exports: [AuthGuard],

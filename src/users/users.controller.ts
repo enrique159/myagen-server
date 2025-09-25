@@ -4,13 +4,17 @@ import {
   Controller,
   Get,
   HttpStatus,
+  InternalServerErrorException,
+  NotFoundException,
   Param,
   Post,
   Put,
   Query,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -22,6 +26,9 @@ import { CreateUserResponseDto } from './dto/create-user-response.dto';
 import { AuthGuard } from '@/auth/auth.guard';
 import { User } from './user.entity';
 import { UpdateUserDto } from './dto/update.user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('users')
 export class UserController {
@@ -69,5 +76,61 @@ export class UserController {
     }
 
     return this.usersService.update(userId, payload);
+  }
+
+  /* UPLOAD COMPANY IMAGE */
+  // Carga una imagen de perfil de la compañia
+  @Post('upload-image')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const uniqueName = crypto.randomUUID();
+          const extension = extname(file.originalname);
+          callback(null, `${uniqueName}${extension}`);
+        },
+      }),
+      fileFilter: (req, file, callback) => {
+        const validExtensions = /(jpg|jpeg|png|webp)$/;
+        const isValid = validExtensions.test(
+          extname(file.originalname).toLowerCase(),
+        );
+        if (!isValid) {
+          return callback(
+            new BadRequestException('Tipo de archivo no permitido'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+    }),
+  )
+  async uploadImage(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request & { user: UserToken },
+  ): Promise<User> {
+    if (!file) {
+      throw new BadRequestException('No se proporcionó un archivo');
+    }
+    const userId = req.user.id;
+    try {
+      return await this.usersService.uploadImage(userId, file, req);
+    } catch (error) {
+      console.error('Error en uploadImage:', error);
+      if (error?.message === 'UserNotFound') {
+        throw new NotFoundException('El usuario no se encontró');
+      }
+      if (error?.message === 'ArchivoInvalido') {
+        throw new BadRequestException('El archivo proporcionado no es válido');
+      }
+      throw new InternalServerErrorException(
+        `Error al subir la imagen: ${error.message}`,
+      );
+    }
   }
 }
